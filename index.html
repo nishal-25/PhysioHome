@@ -179,7 +179,22 @@ textarea{font:inherit;color:inherit;padding:8px;border:1px solid var(--line);bor
 <div id="pF" hidden><div class="card" id="pProf"></div></div></section>
 
 <section class="screen" id="sDoc" hidden>
-<div id="dMain"><h2 class="disp sub" id="dHi"></h2><div class="stats" id="dStats" style="grid-template-columns:repeat(3,1fr)"></div><h3 class="disp" style="margin-top:18px">Your patients</h3><div class="pcs" id="dList"></div></div>
+<div id="dMain"><h2 class="disp sub" id="dHi"></h2><div class="stats" id="dStats" style="grid-template-columns:repeat(3,1fr)"></div>
+<div class="row" style="justify-content:space-between;align-items:center;margin-top:18px"><h3 class="disp" style="margin:0">Your patients</h3><button class="btn pri" id="addP">+ Add patient</button></div>
+<div class="card" id="addForm" hidden style="margin-top:12px"><h3>New patient</h3>
+<div class="fgrid">
+<label>Full name<input id="nN"></label><label>Age<input id="nA" type="number" min="1" max="110"></label>
+<label>Gender<select id="nG"><option>Female</option><option>Male</option><option>Other</option></select></label><label>Phone<input id="nPh" type="tel"></label>
+<label>Village or city<input id="nC"></label>
+<label>Main problem<select id="nCo"><option>Knee pain or stiffness</option><option>Shoulder pain or stiffness</option><option>Back pain</option><option>Recovery after surgery</option><option>Other</option></select></label>
+<label>Pain level (0 to 10)<input id="nPn" type="number" min="0" max="10" value="0"></label><label>Emergency contact<input id="nEm" placeholder="Name and phone"></label>
+<label class="wide">Medical history and allergies<textarea id="nH"></textarea></label>
+<label>Patient login email<input id="nE" type="email"></label>
+<label>Temporary password (6 or more characters)<input id="nP" value="physio123"></label>
+</div><div class="err" id="nErr" role="alert"></div>
+<div class="ctl"><button class="btn pri" id="nSave">Save patient</button><button class="btn" id="nCancel">Cancel</button></div></div>
+<div class="pcs" id="dList"></div></div>
+</div>
 <div id="dDet" hidden><button class="btn" id="dBack">Back to patients</button><h2 class="disp sub" id="dName"></h2>
 <div class="grid2"><div class="card"><h3>Patient details</h3><div id="dProf"></div></div>
 <div class="card"><h3>Assign exercise</h3><div class="row"><label>Exercise<select id="aE"><option value="squat">Knee bend (mini squat)</option><option value="arm">Forward arm raise</option></select></label>
@@ -345,6 +360,14 @@ $("dName").textContent=p.name;$("dProf").innerHTML=prof(p);$("aE").value=pl.ex;$
 $("dChart").innerHTML=(s.length>=4?"<p class='mut'>Trend: <b>"+(l>f+3?"improving":l<f-3?"declining, consider a call":"steady")+"</b></p>":"")+chart(s);
 $("dTbl").innerHTML="<h3>Session reports</h3>"+tbl(s);$("dMain").hidden=true;$("dDet").hidden=false;scrollTo(0,0)}
 on("dBack",doctorHome);
+on("addP",()=>{$("addForm").hidden=false;$("nErr").textContent=""});
+on("nCancel",()=>{$("addForm").hidden=true});
+on("nSave",()=>{const v=id=>$(id).value.trim(),em=v("nE").toLowerCase(),bad=m=>{$("nErr").textContent=m};
+if(!v("nN")||!v("nA"))return bad("Enter the patient’s name and age.");
+if(!em||$("nP").value.length<6)return bad("Enter a login email and a password of 6 or more characters.");
+if(DB.users.some(u=>u.email===em&&u.role==="patient"))return bad("A patient with this email already exists.");
+DB.users.push({id:"p"+Date.now(),role:"patient",name:v("nN"),email:em,pw:$("nP").value,age:+v("nA"),gender:$("nG").value,phone:v("nPh"),city:v("nC"),cond:$("nCo").value,pain:+v("nPn")||0,hist:v("nH"),emg:v("nEm"),doc:me.id});
+save();["nN","nA","nPh","nC","nH","nEm","nE"].forEach(i=>$(i).value="");$("addForm").hidden=true;doctorHome()});
 $("aSave").onclick=()=>{DB.plans[curP]={ex:$("aE").value,reps:+$("aR").value||6,sets:+$("aS").value||1,note:$("aN").value.trim()};save();$("aMsg").textContent="Plan saved. The patient sees it next time they open the app."};
 
 /* ---------- animated hero figure ---------- */
