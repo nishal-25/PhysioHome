@@ -195,7 +195,11 @@ textarea{font:inherit;color:inherit;padding:8px;border:1px solid var(--line);bor
 <div class="ctl"><button class="btn pri" id="nSave">Save patient</button><button class="btn" id="nCancel">Cancel</button></div></div>
 <div class="pcs" id="dList"></div></div>
 </div>
-<div id="dDet" hidden><button class="btn" id="dBack">Back to patients</button><h2 class="disp sub" id="dName"></h2>
+<div id="dDet" hidden>
+<div class="ctl" style="justify-content:space-between"><button class="btn" id="dBack">Back to patients</button><button class="btn" id="rmP" style="color:var(--bad)">Remove patient</button></div>
+<div class="card" id="rmBox" hidden style="margin-top:12px;border-color:var(--bad)"><b>Remove this patient and all their reports? This cannot be undone.</b>
+<div class="ctl"><button class="btn" id="rmYes" style="background:var(--bad);color:#fff;border-color:var(--bad)">Yes, remove</button><button class="btn" id="rmNo">Cancel</button></div></div>
+<h2 class="disp sub" id="dName"></h2>
 <div class="grid2"><div class="card"><h3>Patient details</h3><div id="dProf"></div></div>
 <div class="card"><h3>Assign exercise</h3><div class="row"><label>Exercise<select id="aE"><option value="squat">Knee bend (mini squat)</option><option value="arm">Forward arm raise</option></select></label>
 <label>Reps<input id="aR" type="number" min="3" max="20" style="width:80px"></label><label>Sets<input id="aS" type="number" min="1" max="5" style="width:70px"></label></div>
@@ -356,10 +360,13 @@ return"<button class='pc' data-p='"+p.id+"'><b>"+esc(p.name)+"</b><span class='m
 document.querySelectorAll(".pc").forEach(b=>b.onclick=()=>patientDetail(b.dataset.p));
 $("dMain").hidden=false;$("dDet").hidden=true;show("sDoc")}
 function patientDetail(id){curP=id;const p=DB.users.find(u=>u.id===id),pl=DB.plans[id]||{ex:"squat",reps:6,sets:1,note:""},s=DB.sessions.filter(x=>x.pid===id),a=v=>v.length?v.reduce((x,y)=>x+y.acc,0)/v.length:0,f=a(s.slice(0,3)),l=a(s.slice(-3));
-$("dName").textContent=p.name;$("dProf").innerHTML=prof(p);$("aE").value=pl.ex;$("aR").value=pl.reps;$("aS").value=pl.sets;$("aN").value=pl.note||"";$("aMsg").textContent="";
+$("dName").textContent=p.name;$("rmBox").hidden=true;$("dName").textContent=p.name;
+$("dProf").innerHTML=prof(p);$("aE").value=pl.ex;$("aR").value=pl.reps;$("aS").value=pl.sets;$("aN").value=pl.note||"";$("aMsg").textContent="";
 $("dChart").innerHTML=(s.length>=4?"<p class='mut'>Trend: <b>"+(l>f+3?"improving":l<f-3?"declining, consider a call":"steady")+"</b></p>":"")+chart(s);
 $("dTbl").innerHTML="<h3>Session reports</h3>"+tbl(s);$("dMain").hidden=true;$("dDet").hidden=false;scrollTo(0,0)}
-on("dBack",doctorHome);
+on("rmP",()=>{$("rmBox").hidden=false});
+on("rmNo",()=>{$("rmBox").hidden=true});
+on("rmYes",()=>{DB.users=DB.users.filter(u=>u.id!==curP);delete DB.plans[curP];DB.sessions=DB.sessions.filter(s=>s.pid!==curP);save();$("rmBox").hidden=true;doctorHome()});
 on("addP",()=>{$("addForm").hidden=false;$("nErr").textContent=""});
 on("nCancel",()=>{$("addForm").hidden=true});
 on("nSave",()=>{const v=id=>$(id).value.trim(),em=v("nE").toLowerCase(),bad=m=>{$("nErr").textContent=m};
