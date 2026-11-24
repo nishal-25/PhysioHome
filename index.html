@@ -194,7 +194,6 @@ textarea{font:inherit;color:inherit;padding:8px;border:1px solid var(--line);bor
 </div><div class="err" id="nErr" role="alert"></div>
 <div class="ctl"><button class="btn pri" id="nSave">Save patient</button><button class="btn" id="nCancel">Cancel</button></div></div>
 <div class="pcs" id="dList"></div></div>
-</div>
 <div id="dDet" hidden>
 <div class="ctl" style="justify-content:space-between"><button class="btn" id="dBack">Back to patients</button><button class="btn" id="rmP" style="color:var(--bad)">Remove patient</button></div>
 <div class="card" id="rmBox" hidden style="margin-top:12px;border-color:var(--bad)"><b>Remove this patient and all their reports? This cannot be undone.</b>
@@ -215,7 +214,7 @@ const EX={squat:{name:"Knee bend (mini squat)",start:170,target:100,label:"Knee 
 arm:{name:"Forward arm raise",start:15,target:90,label:"Shoulder angle",hint:"Lift your arm straight forward to shoulder height, then lower slowly."}};
 function seed(){const d=Date.now(),D=864e5,mk=(pid,a,ex)=>a.map((v,i)=>({pid,t:d-(a.length-i)*2*D,ex,reps:6,goal:6,acc:v,pain:Math.max(1,6-Math.round(i*.8)),dur:42+i*2}));
 return{users:[{id:"d1",role:"doctor",name:"Dr. Neha Mehta",email:"dr.mehta@demo.com",pw:"doctor123",spec:"Physiotherapist (MPT)",reg:"KA-PT-20418"},
-{id:"p1",role:"patient",name:"Ravi Kumar",email:"ravi@demo.com",pw:"patient123",age:54,gender:"Male",phone:"98450 12345",city:"Village near Hosur",cond:"Recovery after surgery",pain:5,hist:"Knee replacement 6 weeks ago. Mild high blood pressure.",emg:"Sita (wife) 98450 54321",doc:"d1"},
+{id:"p1",role:"patient",name:"Ramesh Kumar",email:"ramesh@123",pw:"ramesh@123",age:54,gender:"Male",phone:"98450 12345",city:"Village near Hosur",cond:"Recovery after surgery",pain:5,hist:"Knee replacement 6 weeks ago. Mild high blood pressure.",emg:"Sita (wife) 98450 54321",doc:"d1"},
 {id:"p2",role:"patient",name:"Anita Sharma",email:"anita@demo.com",pw:"patient123",age:41,gender:"Female",phone:"99000 11223",city:"Kolar",cond:"Shoulder pain or stiffness",pain:4,hist:"None",emg:"Mohan (brother)",doc:"d1"}],
 plans:{p1:{ex:"squat",reps:6,sets:1,note:"Go slowly. Stop if the pain is sharp."},p2:{ex:"arm",reps:8,sets:1,note:""}},
 sessions:[...mk("p1",[58,66,71,78,84],"squat"),...mk("p2",[72,69,75,80],"arm")]}}
@@ -319,8 +318,8 @@ $("rDoc").innerHTML=DB.users.filter(u=>u.role==="doctor").map(u=>"<option value=
 document.querySelectorAll("#lSeg button").forEach(b=>b.onclick=()=>loginShow(b.dataset.r));
 document.querySelectorAll("#rSeg button").forEach(b=>b.onclick=()=>regShow(b.dataset.r));
 const fill=(r,e,p)=>{loginShow(r);$("lE").value=e;$("lP").value=p};
-on("hP",()=>regShow("patient"));on("hD",()=>loginShow("doctor"));on("hT",()=>fill("patient","ravi@demo.com","patient123"));
-on("dP",()=>fill("patient","ravi@demo.com","patient123"));on("dD",()=>fill("doctor","dr.mehta@demo.com","doctor123"));
+on("hP",()=>regShow("patient"));on("hD",()=>loginShow("doctor"));on("hT",()=>fill("patient","ramesh@123","ramesh@123"));
+on("dP",()=>fill("patient","ramesh@123","ramesh@123"));on("dD",()=>fill("doctor","dr.mehta@demo.com","doctor123"));
 on("toReg",()=>regShow(lrole));on("toLog",()=>loginShow(rrole));on("logo",()=>me?enter(me):show("sHome"));
 $("rPn").oninput=()=>$("rPv").textContent=$("rPn").value;$("pn").oninput=()=>$("pv").textContent=$("pn").value;
 $("lForm").onsubmit=e=>{e.preventDefault();const u=DB.users.find(x=>x.role===lrole&&x.email===$("lE").value.trim().toLowerCase()&&x.pw===$("lP").value);
@@ -345,7 +344,7 @@ const tbl=s=>s.length?"<table><thead><tr><th>Date</th><th>Exercise</th><th>Reps<
 function ptab(id){["pT","pP","pF"].forEach(x=>$(x).hidden=x!==id);document.querySelectorAll("#pTabs button").forEach(b=>b.classList.toggle("on",b.dataset.t===id))}
 document.querySelectorAll("#pTabs button").forEach(b=>b.onclick=()=>ptab(b.dataset.t));
 function renderPat(){const s=DB.sessions.filter(x=>x.pid===me.id);$("pChart").innerHTML="<h3>Accuracy per session</h3>"+chart(s);$("pTbl").innerHTML="<h3>Your reports</h3>"+tbl(s);$("pProf").innerHTML=prof(me)}
-function patientHome(){const p=DB.plans[me.id],doc=DB.users.find(x=>x.id===me.doc);hasPlan=!!p;if(p)plan=p;
+function patientHome(){const p=DB.plans[me.id],doc=DB.users.find(x=>x.id===me.doc);hasPlan=!!p;plan=p||{ex:"squat",reps:6,sets:1,note:""};document.querySelectorAll("#pT > *:not(#plan)").forEach(e=>e.hidden=!hasPlan);
 $("pHi").textContent="Hello, "+me.name.split(" ")[0];
 if(p){const E=EX[p.ex];$("plan").innerHTML="<span class='mut'>Assigned by "+esc(doc&&doc.name)+"</span><b>"+E.name+"</b><span>"+p.reps+" reps × "+p.sets+" set"+(p.sets>1?"s":"")+"</span>"+(p.note?"<span class='mut'>“"+esc(p.note)+"”</span>":"");$("sL").textContent=E.label;$("sT").textContent="≈ "+E.target+"°"}
 else $("plan").innerHTML="<b>No exercise assigned yet</b><span class='mut'>Your doctor will assign one after reviewing your details.</span>";
